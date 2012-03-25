@@ -44,16 +44,17 @@ data BPlusNode = BPLeaf [(Key, Value)] (Maybe BPPtr)
                  deriving (Show)
 
 
+-- Probably need to fine tune the serialization of list
 instance Binary BPlusNode where
    put (BPLeaf lkv maybeptr) = do
      put (0 :: WordSize) -- initial tag byte to indicate each variant of the data type
      put (maybeptr :: Maybe BPPtr)
-     sequence_ $ map put lkv
+     put lkv
 
    put (BPInternal lkp ptr) = do
      put (1 :: WordSize)
      put (ptr :: BPPtr)
-     sequence_ $ map put lkp
+     put lkp
 
    get = do
      t <- get :: Get WordSize
