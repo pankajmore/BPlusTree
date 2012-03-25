@@ -30,13 +30,8 @@ module Data.Tree.BPlusTree.BPlusTree where
 -- All internal nodes at least half full, except possibly the root node.
 -- All leaf nodes at least half full (except possibly root)
 
-
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Char8 as BC
--- -- All internal nodes at least half full, except possibly the root node.
--- -- All leaf nodes at least half full (except possibly root)
---
---
 import Data.Tree.BPlusTree.BPlusFileDescriptor
 import Data.Binary
 import System.IO
@@ -55,8 +50,8 @@ data BPlusNode = BPLeaf [(Key, Value)] (Maybe BPPtr)
 
 -- BPlusTree is just the filename storing the actual b+ tree data
 data BPlusTree = BPlusTree { handle :: Handle
-                              , descriptor :: BPlusFileDescriptor
-                              }
+                           , descriptor :: BPlusFileDescriptor
+                           }
 
 -- TODO : store (Mayb BPPtr) in exactly 4 bytes by assigning 0 Nothing 
 -- since a node's address can never be 0
