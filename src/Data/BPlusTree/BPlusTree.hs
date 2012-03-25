@@ -29,15 +29,40 @@ module BPlusTree where
 import qualified Data.ByteString.Char8 as B
 import Data.ByteString.Char8 (ByteString)
 import Data.BPlusTree.BPlusFileDescriptor
+import Data.Binary
 
 type Key = ByteString
 type Value = ByteString
 
-newtype BPPtr = BPP Int deriving (Show,Eq)
+type WordSize = Word32
+
+-- The idea is to seek to this location in the file
+type BPPtr = Word32 
 
 data BPlusNode = BPLeaf [(Key, Value)] (Maybe BPPtr)
                | BPInternal [(Key, BPPtr)] BPPtr
                  deriving (Show)
 
 
+instance Binary BPlusNode where
+   put (BPLeaf lkv maybeptr) = do
+     put (0 :: WordSize) -- initial tag byte to indicate each variant of the data type
+     put (maybeptr :: Maybe BPPtr)
+     sequence_ $ map put lkv
 
+   put (BPInternal lkp ptr) = do
+     put (1 :: WordSize)
+     put (ptr :: BPPtr)
+     sequence_ $ map put lkp
+
+   get = do
+     t <- get :: Get WordSize
+     case t of
+        0 -> do
+            maybeptr <- get :: Get (Maybe BPPtr)
+            lkv <- get
+            return (BPLeaf lkv maybeptr)
+        1 -> do
+            ptr <- get :: Get (BPPtr)
+            lkp <- get
+            return (BPInternal lkp ptr)
