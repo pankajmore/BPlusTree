@@ -30,6 +30,8 @@ module Data.Tree.BPlusTree.BPlusTree where
 -- All internal nodes at least half full, except possibly the root node.
 -- All leaf nodes at least half full (except possibly root)
 
+-- ASSUMPTIONS : A leaf node is small enough to fit in main memory
+
 import qualified Data.ByteString.Lazy as B
 import qualified Data.ByteString.Char8 as BC
 import Data.Tree.BPlusTree.BPlusFileDescriptor
@@ -91,11 +93,11 @@ create k v fp = do
     writeBPlusNode rootnode (8 :: Word32) bpt
     return bpt
 
+lookup :: Key -> BPlusTree -> IO (Maybe Value)
+lookup = undefined
+
 insert :: Key -> Value -> BPlusTree -> IO ()
 insert = undefined
-
-lookup :: Key -> BPlusTree -> IO Value
-lookup = undefined
 
 writeBPlusNode :: BPlusNode -> BPPtr -> BPlusTree -> IO ()
 writeBPlusNode nd ptr tree = do
