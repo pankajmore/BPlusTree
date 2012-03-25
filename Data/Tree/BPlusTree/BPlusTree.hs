@@ -1,4 +1,4 @@
-module BPlusTree where
+module Data.Tree.BPlusTree.BPlusTree where
 
 -- | Implementation of B+ Tree, using a RecordFile as the underlying
 -- primitive. A B+ Tree is a BTree where all the actual data is in the
@@ -31,22 +31,32 @@ module BPlusTree where
 -- All leaf nodes at least half full (except possibly root)
 
 
-import qualified Data.ByteString.Char8 as B
-import Data.ByteString.Char8 (ByteString)
-import Data.BPlusTree.BPlusFileDescriptor
+import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString.Char8 as BC
+-- -- All internal nodes at least half full, except possibly the root node.
+-- -- All leaf nodes at least half full (except possibly root)
+--
+--
+import Data.Tree.BPlusTree.BPlusFileDescriptor
 import Data.Binary
+import System.IO
 
 type Key = Word32
-type Value = ByteString
+type Value = BC.ByteString
 
 type WordSize = Word32
 
 -- The idea is to seek to this location in the file
-type BPPtr = Word32 
+type BPPtr = Word32
 
 data BPlusNode = BPLeaf [(Key, Value)] (Maybe BPPtr)
                | BPInternal [(Key, BPPtr)] BPPtr
                  deriving (Show)
+
+-- BPlusTree is just the filename storing the actual b+ tree data
+data BPlusTree = BPlusTree { handle :: Handle
+                              , descriptor :: BPlusFileDescriptor
+                              }
 
 -- TODO : store (Mayb BPPtr) in exactly 4 bytes by assigning 0 Nothing 
 -- since a node's address can never be 0
@@ -74,3 +84,32 @@ instance Binary BPlusNode where
             ptr <- get :: Get (BPPtr)
             lkp <- get
             return (BPInternal lkp ptr)
+
+-- create a BPlusTree with root node 
+create :: Key -> Value -> FilePath -> IO BPlusTree
+create k v fp = do
+    fh <- openFile fp ReadWriteMode
+    let rootnode = BPLeaf [(k,v)] Nothing
+    let bpfd = BPFD (512 :: Word32) (8 :: Word32)
+    writeBPlusHeader bpfd fh
+    let bpt = BPlusTree fh bpfd
+    writeBPlusNode rootnode (8 :: Word32) bpt
+    return bpt
+
+insert :: Key -> Value -> BPlusTree -> IO ()
+insert = undefined
+
+lookup :: Key -> BPlusTree -> IO Value
+lookup = undefined
+
+writeBPlusNode :: BPlusNode -> BPPtr -> BPlusTree -> IO ()
+writeBPlusNode nd ptr tree = do
+    let fh = handle tree
+    hSeek fh AbsoluteSeek (fromIntegral ptr) 
+    let bs = encode nd
+    B.hPut fh bs
+
+test = do
+    bpt <- create (256 :: Word32) (BC.pack "hello") "test.btree"
+    return ()
+
