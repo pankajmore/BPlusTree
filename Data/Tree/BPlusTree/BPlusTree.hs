@@ -26,12 +26,17 @@ module BPlusTree where
 -- where the 'vA' is the value corresponding to 'kA' and <p> points to
 -- the next leaf node along.
 
+-- INVARIANTS : All leaf nodes at same depth.
+-- All internal nodes at least half full, except possibly the root node.
+-- All leaf nodes at least half full (except possibly root)
+
+
 import qualified Data.ByteString.Char8 as B
 import Data.ByteString.Char8 (ByteString)
 import Data.BPlusTree.BPlusFileDescriptor
 import Data.Binary
 
-type Key = ByteString
+type Key = Word32
 type Value = ByteString
 
 type WordSize = Word32
@@ -43,8 +48,10 @@ data BPlusNode = BPLeaf [(Key, Value)] (Maybe BPPtr)
                | BPInternal [(Key, BPPtr)] BPPtr
                  deriving (Show)
 
-
+-- TODO : store (Mayb BPPtr) in exactly 4 bytes by assigning 0 Nothing 
+-- since a node's address can never be 0
 -- Probably need to fine tune the serialization of list
+
 instance Binary BPlusNode where
    put (BPLeaf lkv maybeptr) = do
      put (0 :: WordSize) -- initial tag byte to indicate each variant of the data type

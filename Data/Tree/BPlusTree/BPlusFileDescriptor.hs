@@ -7,8 +7,10 @@ module Data.BPlusTree.BPlusFileDescriptor where
 
 -- Header block:
 --  4 bytes - block size
---  4 bytes - index of "root" blockSize
+--  4 bytes - index of "root" block
 --  What else?
+--  All other blocks are node blocks
+
 
 import Data.Word (Word32)
 import Data.Binary
